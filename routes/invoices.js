@@ -49,13 +49,35 @@ router.post('/', async (req, res) => {
 // PUT /invoices/:id
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
-    const { amt } = req.body;
+    const { amt, paid } = req.body;
+
     try {
-        const result = await db.query('UPDATE invoices SET amt = $1 WHERE id = $2 RETURNING *', [amt, id]);
+        const result = await db.query('SELECT * FROM invoices WHERE id = $1', [id]);
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Invoice not found' });
         }
-        return res.json({ invoice: result.rows[0] });
+
+        const invoice = result.rows[0];
+        let paidDate = null;
+
+        if (paid && !invoice.paid) {
+            // If paying an unpaid invoice, set paid_date to today
+            paidDate = new Date().toISOString().split('T')[0];
+        } else if (!paid) {
+            // If un-paying, set paid_date to null
+            paidDate = null;
+        } else {
+            // Keep the current paid_date for other cases
+            paidDate = invoice.paid_date;
+        }
+
+        const updateResult = await db.query(
+            'UPDATE invoices SET amt = $1, paid = $2, paid_date = $3 WHERE id = $4 RETURNING *',
+            [amt, paid, paidDate, id]
+        );
+
+        return res.json({ invoice: updateResult.rows[0] });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: 'Internal Server Error' });

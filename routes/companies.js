@@ -1,4 +1,6 @@
 const express = require('express');
+const slugify = require('slugify');
+
 const router = express.Router();
 const db = require('../db'); // Assuming you have a database module
 
@@ -33,7 +35,11 @@ router.get('/:code', async (req, res) => {
 
 // POST /companies
 router.post('/', async (req, res) => {
-    const { code, name, description } = req.body;
+    const { name, description } = req.body;
+
+    // Generate company code using slugify
+    const code = slugify(name, { lower: true });
+
     try {
         const result = await db.query('INSERT INTO companies (code, name, description) VALUES ($1, $2, $3) RETURNING *', [code, name, description]);
         return res.status(201).json({ company: result.rows[0] });

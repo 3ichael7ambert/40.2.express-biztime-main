@@ -68,3 +68,30 @@ this displays the JSON of the 1 id invoice
 
 DELETE localhost:3000/invoices/1
 this will delete that specific invoice
+
+================================================================
+# Further Study
+
+```bash
+npm install --save-dev jest supertest
+npm install --save slugify
+```
+
+##### End venv
+I had a port running in the background, to kill it:
+```bash
+lsof -i :3000
+kill -9 <PID>
+```
+
+## Slugify
+
+### companies
+POST
+```json
+{
+  "name": "company name",
+  "description": "Description"
+}
+```
+
